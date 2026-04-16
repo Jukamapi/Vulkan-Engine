@@ -32,20 +32,13 @@ add_library(engine STATIC)
 
 target_sources(engine PRIVATE
     src/engine/core/application.cpp
-    src/engine/core/logger.cpp
-
+    src/engine/core/event_handler.cpp
     src/engine/window/window.cpp
 
-
     src/engine/vk/context.cpp
-    src/engine/vk/swapchain.cpp
-    src/engine/vk/buffer.cpp
-    src/engine/vk/image.cpp
-    src/engine/vk/pipeline.cpp
-    src/engine/vk/descriptors.cpp
+    src/engine/vk/frame_manager.cpp
 
     src/engine/renderer/renderer.cpp
-    src/engine/renderer/scene.cpp
 
     src/engine/resources/loader.cpp
 )
@@ -55,21 +48,18 @@ target_sources(engine PUBLIC
     BASE_DIRS src
     FILES
         src/engine/core/application.h
-        src/engine/core/logger.h
+        src/engine/core/event.h
+        src/engine/core/event_handler.h
+        src/engine/core/event_system.h
 
         src/engine/window/window.h
 
         src/engine/vk/context.h
-        src/engine/vk/swapchain.h
-        src/engine/vk/buffer.h
-        src/engine/vk/image.h
-        src/engine/vk/pipeline.h
-        src/engine/vk/descriptors.h
         src/engine/vk/utils.h
         src/engine/vk/deletion_queue.h
+        src/engine/vk/frame_manager.h
 
         src/engine/renderer/renderer.h
-        src/engine/renderer/scene.h
         src/engine/renderer/render_feature.h
 
         src/engine/resources/loader.h

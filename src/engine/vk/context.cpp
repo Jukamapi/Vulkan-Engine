@@ -9,7 +9,7 @@
 // use window to get surface
 
 Context::Context(Window& window)
-    : m_window{&window}
+    : m_window{window}
 {
     // initialize instance
     // initialize physical device
@@ -23,10 +23,10 @@ Context::~Context()
 
 uint32_t Context::getWindowWidth() const
 {
-    return m_window->getWidth();
+    return m_window.getWidth();
 }
 
 uint32_t Context::getWindowHeight() const
 {
-    return m_window->getHeight();
+    return m_window.getHeight();
 }

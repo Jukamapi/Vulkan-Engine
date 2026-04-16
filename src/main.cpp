@@ -1,5 +1,5 @@
 #include <SDL.h>
-#include <iostream>
+#include <print>
 
 #include "engine/core/application.h"
 
@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
     }
     catch (const std::exception& e)
     {
+        std::println(stderr, "Fatal error: {}", e.what());
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;

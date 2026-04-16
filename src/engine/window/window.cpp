@@ -1,4 +1,5 @@
 #include "window.h"
+#include "engine/core/event_system.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
@@ -60,6 +61,7 @@ void Window::pollEvents()
         {
         case SDL_QUIT:
             m_shouldClose = true;
+            EventSystem::instance().push(WindowCloseEvent{});
             break;
 
         case SDL_WINDOWEVENT:
@@ -77,11 +79,15 @@ void Window::pollEvents()
             case SDL_WINDOWEVENT_RESIZED:
                 m_width = static_cast<uint32_t>(event.window.data1);
                 m_height = static_cast<uint32_t>(event.window.data2);
+                EventSystem::instance().push(WindowResizeEvent{m_width, m_height});
                 break;
             }
+            break;
+
+        case SDL_MOUSEMOTION:
+            EventSystem::instance().push(MouseMoveEvent{event.motion.x, event.motion.y});
             break;
         }
 
     }
 }
-

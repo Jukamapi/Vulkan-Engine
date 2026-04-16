@@ -1,9 +1,8 @@
 #include "renderer.h"
 
 Renderer::Renderer(Context& context)
-    : m_context(&context)
+    : m_context(context), m_frameManager(context)
 {
-
 }
 
 
@@ -20,7 +19,7 @@ void Renderer::drawFrame()
 
 void Renderer::pushFeature(std::unique_ptr<RenderFeature> feature)
 {
-    feature->onAttach(*m_context);
+    feature->onAttach(m_context);
     m_features.push_back(std::move(feature));
 }
 
