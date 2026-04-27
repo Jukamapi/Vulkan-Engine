@@ -1,9 +1,15 @@
 #include "renderer.h"
 
-Renderer::Renderer()
-    : m_frameManager()
+#include "engine/vk/physical_device.h"
+#include "engine/vk/context.h"
+#include "engine/window/window.h"
+
+Renderer::Renderer(const Context& context, const Window& window)
+    : m_swapchain(context.getPhysicalDevice(), context.getDeviceHandle(), context.getSurfaceHandle(), window.getDrawableSize()), m_frameManager()
 {
 }
+
+//const PhysicalDevice& physicalDevice, VkDevice device, VkSurfaceKHR surface, uint32_t drawableWidth, uint32_t drawableHeight
 
 
 void Renderer::drawFrame()

@@ -13,6 +13,8 @@ public:
     LogicalDevice(LogicalDevice&& ) = delete;
     LogicalDevice& operator=(LogicalDevice&&) = delete;
 
+    VkDevice getHandle() const { return m_device; }
+
 private:
     VkDevice m_device{ VK_NULL_HANDLE };
     //queues are implicitly cleaned

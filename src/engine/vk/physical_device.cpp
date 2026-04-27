@@ -175,3 +175,4 @@ PhysicalDevice::SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(Vk
 
     return details;
 }
+

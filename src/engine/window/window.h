@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/core/event.h"
+#include "engine/core/types.h"
 
 #include <string>
 #include <cstdint>
@@ -12,8 +13,6 @@ struct SDL_Window;
 class Window
 {
 public:
-
-
     using EventCallbackFn = std::function<void(Event&)>;
 
     Window(uint32_t width, uint32_t height, const std::string title);
@@ -22,6 +21,10 @@ public:
     Window& operator=(const Window&) = delete;
     Window(Window&&) = delete;
     Window& operator=(Window&&) = delete;
+
+    void pollEvents();
+
+    Extent getDrawableSize() const;
 
     uint32_t getHeight() const { return m_height; }
     uint32_t getWidth() const { return m_width; }
@@ -35,7 +38,6 @@ public:
     std::function<void(const Event&)> onEvent;
 
 private:
-    void pollEvents();
     void queryExtensions();
 
     const std::string m_appName;
@@ -43,6 +45,7 @@ private:
 
     uint32_t m_width{ 0 };
     uint32_t m_height{ 0 };
+
     uint32_t m_sdlExtensionCount{ 0 };
     std::vector<const char*> m_sdlExtensions{};
 

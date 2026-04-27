@@ -12,7 +12,6 @@ class Window;
 class Context
 {
 public:
-    // .getNativeWindow() to create the surface
     Context(Window& window);
     ~Context();
     Context(const Context&) = delete;
@@ -21,7 +20,10 @@ public:
     Context& operator=(Context&&) = delete;
 
 
-    VkInstance getInstance() const { return m_instance.getInstanceHandle(); }
+    VkInstance getInstanceHandle() const { return m_instance.getHandle(); }
+    VkDevice getDeviceHandle() const { return m_logicalDevice.getHandle(); }
+    VkSurfaceKHR getSurfaceHandle() const { return m_surface.getHandle(); }
+    const PhysicalDevice& getPhysicalDevice() const { return m_physicalDevice; }
 
     // might modiffy
 

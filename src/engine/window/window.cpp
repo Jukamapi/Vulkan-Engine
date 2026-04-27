@@ -35,6 +35,8 @@ Window::Window(uint32_t width, uint32_t height, const std::string title)
         throw std::runtime_error("Failed to create SDL window: " + std::string(SDL_GetError()));
     }
 
+    queryExtensions();
+
     s_windowCount++;
 }
 
@@ -122,4 +124,13 @@ void Window::queryExtensions()
     SDL_Vulkan_GetInstanceExtensions(m_window, &m_sdlExtensionCount, nullptr);
     m_sdlExtensions.resize(m_sdlExtensionCount);
     SDL_Vulkan_GetInstanceExtensions(m_window, &m_sdlExtensionCount, m_sdlExtensions.data());
+
+}
+
+Extent Window::getDrawableSize() const
+{
+    int w, h;
+    SDL_Vulkan_GetDrawableSize(m_window, &w, &h);
+
+    return { static_cast<uint32_t>(w), static_cast<uint32_t>(h) };
 }

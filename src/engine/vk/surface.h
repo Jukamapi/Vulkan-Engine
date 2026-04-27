@@ -14,7 +14,7 @@ public:
     Surface(Surface&&) = delete;
     Surface& operator=(Surface&&) = delete;
 
-    VkSurfaceKHR getSurfaceHandle() const { return m_surface; }
+    VkSurfaceKHR getHandle() const { return m_surface; }
 
 private:
     VkSurfaceKHR m_surface{ VK_NULL_HANDLE };

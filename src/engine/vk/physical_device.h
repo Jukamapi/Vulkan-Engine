@@ -13,7 +13,7 @@ class PhysicalDevice
 {
 public:
     PhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
-    ~PhysicalDevice();
+    ~PhysicalDevice() = default;
     PhysicalDevice(PhysicalDevice&) = delete;
     PhysicalDevice& operator=(PhysicalDevice&) = delete;
     PhysicalDevice(PhysicalDevice&&) = delete;
@@ -40,13 +40,14 @@ public:
     VkPhysicalDevice getPhysicalDeviceHandle() const { return m_physicalDevice; }
     QueueFamilyIndices getQueueFamilyIndices() const { return m_familyIndices; }
     const std::vector<const char*> getDeviceExtensions() const { return m_deviceExtensions; }
+    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface) const;
 
 
 private:
+    //helpers
     bool checkDeviceExtensionSupport(VkPhysicalDevice device) const;
     int rateDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR instance) const;
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) const;
-    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface) const;
 
 
     VkPhysicalDevice m_physicalDevice{ VK_NULL_HANDLE };

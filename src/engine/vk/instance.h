@@ -17,7 +17,7 @@ public:
     Instance(Instance&&) = delete;
     Instance& operator=(Instance&&) = delete;
 
-    VkInstance getInstanceHandle() const { return m_instance; }
+    VkInstance getHandle() const { return m_instance; }
 
 private:
     bool checkExtensionsSupport(const std::vector<const char*>& requiredExtensions) const;

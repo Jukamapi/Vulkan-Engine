@@ -72,6 +72,7 @@ target_sources(engine PUBLIC
         src/engine/core/application.h
         src/engine/core/event.h
         src/engine/core/input.h
+        src/engine/core/types.h
 
 
         src/engine/window/window.h
