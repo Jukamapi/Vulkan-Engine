@@ -1,0 +1,71 @@
+---
+BasedOnStyle: Microsoft
+# --- Indentation and General ---
+IndentWidth: 4
+# This moves public/private 4 spaces to the left, aligning them with the class keyword
+AccessModifierOffset: -4
+IndentAccessModifiers: false
+ColumnLimit: 120
+TabWidth: 4
+UseTab: Never
+
+# --- Braces (Allman Style) ---
+BreakBeforeBraces: Allman
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
+  SplitEmptyFunction: true
+
+# --- Spacing ---
+# Matches your if(condition) style
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: false
+  AfterForeachMacros: false
+  AfterFunctionDeclarationName: false
+  AfterFunctionDefinitionName: false
+  AfterIfMacros: false
+  AfterOverloadedOperator: false
+  BeforeNonEmptyParentheses: false
+
+# Matches m_isRunning{ false };
+SpacesInContainerLiterals: true
+
+# --- Pointers and References ---
+# Matches const PhysicalDevice& physicalDevice
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+# --- Constructor Initializers ---
+BreakConstructorInitializers: BeforeColon
+ConstructorInitializerIndentWidth: 4
+
+# --- Inheritance ---
+BreakInheritanceList: BeforeColon
+SpaceBeforeInheritanceColon: true
+
+# --- Includes ---
+IncludeBlocks: Preserve
+SortIncludes: true
+
+# --- Cleanliness ---
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+MaxEmptyLinesToKeep: 2
+
+Standard: Latest
+
+BinPackArguments: false
+BinPackParameters: false
+AllowAllArgumentsOnNextLine: false
+AlignAfterOpenBracket: BlockIndent

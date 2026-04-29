@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(VulkanEngine LANGUAGES CXX C)
+project(Mocca LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,15 +11,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_definitions(VK_NO_PROTOTYPES)
 
-#options
-#option(ENGINE_ENABLE_VALIDATION "Enable Vulkan validation layers" ON)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include(dependencies)
 include(imgui)
 include(shaders)
 
+#vendor
 add_library(volk STATIC vendor/volk/volk.c)
 target_link_libraries(volk PUBLIC Vulkan::Headers)
 target_include_directories(volk PUBLIC vendor/volk)
@@ -27,7 +25,6 @@ if(UNIX)
     target_link_libraries(volk PRIVATE dl)
 endif()
 
-#vendor headers
 add_library(glm INTERFACE)
 target_include_directories(glm INTERFACE vendor)
 target_compile_definitions(glm INTERFACE
@@ -41,62 +38,67 @@ target_include_directories(stb INTERFACE vendor)
 add_library(vma INTERFACE)
 target_include_directories(vma INTERFACE vendor)
 
-#engine
-add_library(engine STATIC)
+#mocca library
+add_library(mocca STATIC)
 
-target_sources(engine PRIVATE
-    src/engine/core/application.cpp
+target_sources(mocca PRIVATE
+    #core
+    src/Mocca/core/application.cpp
+    src/Mocca/core/window.cpp
 
-    src/engine/window/window.cpp
+    #vulkan backend
+    src/Mocca/vulkan/core/context.cpp
+    src/Mocca/vulkan/core/instance.cpp
+    src/Mocca/vulkan/core/physical_device.cpp
+    src/Mocca/vulkan/core/logical_device.cpp
+    src/Mocca/vulkan/core/surface.cpp
+    src/Mocca/vulkan/vulkan_utils.cpp
+    src/Mocca/vulkan/resources/swapchain.cpp
+    src/Mocca/vulkan/pipeline/pipeline.cpp
+    src/Mocca/vulkan/commands/command_pool.cpp
+    src/Mocca/vulkan/commands/frame_manager.cpp
 
-    src/engine/vk/context.cpp
-    src/engine/vk/frame_manager.cpp
-    src/engine/vk/instance.cpp
-    src/engine/vk/physical_device.cpp
-    src/engine/vk/logical_device.cpp
-    src/engine/vk/surface.cpp
-    src/engine/vk/utils.cpp
-    src/engine/vk/swapchain.cpp
-    src/engine/vk/pipeline.cpp
+    #renderer logic
+    src/Mocca/renderer/renderer.cpp
 
-    src/engine/renderer/renderer.cpp
-
+    #vndor init logic
     vendor/vendor_init.cpp
 )
 
-target_sources(engine PUBLIC
+target_sources(mocca PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src
     FILES
-        src/engine/core/application.h
-        src/engine/core/event.h
-        src/engine/core/input.h
-        src/engine/core/types.h
+        #core
+        src/Mocca/core/application.h
+        src/Mocca/core/event.h
+        src/Mocca/core/input.h
+        src/Mocca/core/types.h
+        src/Mocca/core/window.h
 
+        #vulkan core
+        src/Mocca/vulkan/core/context.h
+        src/Mocca/vulkan/core/instance.h
+        src/Mocca/vulkan/core/physical_device.h
+        src/Mocca/vulkan/core/logical_device.h
+        src/Mocca/vulkan/core/surface.h
 
-        src/engine/window/window.h
+        #vulkan resources
+        src/Mocca/vulkan/vulkan_utils.h
+        src/Mocca/vulkan/resources/swapchain.h
+        src/Mocca/vulkan/pipeline/pipeline.h
+        src/Mocca/vulkan/commands/command_pool.h
+        src/Mocca/vulkan/commands/frame_manager.h
+        src/Mocca/vulkan/commands/deletion_queue.h
 
-        src/engine/vk/context.h
-        src/engine/vk/utils.h
-        src/engine/vk/deletion_queue.h
-        src/engine/vk/frame_manager.h
-        src/engine/vk/instance.h
-        src/engine/vk/physical_device.h
-        src/engine/vk/logical_device.h
-        src/engine/vk/surface.h
-        src/engine/vk/swapchain.h
-        src/engine/vk/pipeline.h
-
-        src/engine/resources/loader.h
-
-        src/engine/renderer/renderer.h
-        src/engine/renderer/render_feature.h
-
+        src/Mocca/resources/loader.h
+        src/Mocca/renderer/renderer.h
+        src/Mocca/renderer/render_feature.h
 )
 
-target_include_directories(engine PUBLIC src)
+target_include_directories(mocca PUBLIC src)
 
-target_link_libraries(engine PUBLIC
+target_link_libraries(mocca PUBLIC
     volk
     SDL2::SDL2
     fastgltf
@@ -105,17 +107,15 @@ target_link_libraries(engine PUBLIC
     vma
 )
 
+#sandbox-app
+add_executable(sandbox src/Sandbox/main.cpp)
+set_target_properties(sandbox PROPERTIES WIN32_EXECUTABLE FALSE)
 
-#app
-add_executable(app src/main.cpp)
-set_target_properties(app PROPERTIES WIN32_EXECUTABLE FALSE)
+target_compile_definitions(sandbox PRIVATE SDL_MAIN_HANDLED)
 
-target_compile_definitions(app PRIVATE SDL_MAIN_HANDLED)
-
-target_link_libraries(app PRIVATE
-    engine
+target_link_libraries(sandbox PRIVATE
+    mocca
     SDL2::SDL2
 )
 
-#shader
-add_dependencies(app shaders)
+add_dependencies(sandbox shaders)
