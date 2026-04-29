@@ -3,6 +3,7 @@
 #include "engine/renderer/render_feature.h"
 #include "engine/vk/frame_manager.h"
 #include "engine/vk/swapchain.h"
+#include "engine/vk/pipeline.h"
 
 #include <vector>
 #include <memory>
@@ -27,6 +28,8 @@ public:
 
 private:
     Swapchain m_swapchain;
+    Pipeline m_pipeline;
+
     FrameManager m_frameManager;
     std::vector<std::unique_ptr<RenderFeature>> m_features;
 };

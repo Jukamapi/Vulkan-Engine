@@ -23,9 +23,9 @@ Instance::Instance(const std::string& appName, const std::vector<const char*>& e
     VkApplicationInfo appInfo{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pApplicationName = appName.c_str(),
-        .applicationVersion = VK_MAKE_VERSION(1, 3, 0),
+        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
         .pEngineName = "No Engine",
-        .engineVersion = VK_MAKE_VERSION(1, 3, 0),
+        .engineVersion = VK_MAKE_VERSION(1, 0, 0),
         .apiVersion = VK_API_VERSION_1_3
     };
 
@@ -157,7 +157,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL Instance::debugCallback(VkDebugUtilsMessageSeveri
     return VK_FALSE;
 }
 
-void Instance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+void Instance::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) const
 {
     createInfo = {
         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,

@@ -4,6 +4,7 @@
 
 
 // TODO: Wrap everything in namespaces
+// TODO: Add more comments so i don't get lost, while the logic is fresh on my mind
 
 int main(int argc, char* argv[])
 {

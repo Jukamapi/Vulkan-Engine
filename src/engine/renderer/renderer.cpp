@@ -5,7 +5,9 @@
 #include "engine/window/window.h"
 
 Renderer::Renderer(const Context& context, const Window& window)
-    : m_swapchain(context.getPhysicalDevice(), context.getDeviceHandle(), context.getSurfaceHandle(), window.getDrawableSize()), m_frameManager()
+    : m_swapchain(context.getPhysicalDevice(), context.getDeviceHandle(), context.getSurfaceHandle(), window.getDrawableSize()),
+    m_pipeline(m_swapchain, context.getDeviceHandle()),
+    m_frameManager()
 {
 }
 

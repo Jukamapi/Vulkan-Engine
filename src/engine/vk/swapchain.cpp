@@ -62,12 +62,26 @@ Swapchain::Swapchain(const PhysicalDevice& physicalDevice, VkDevice device, VkSu
 
     VK_CHECK(vkCreateSwapchainKHR(device, &createInfo, nullptr, &m_swapchain));
 
+
+    //images
     vkGetSwapchainImagesKHR(m_logicalDevice, m_swapchain, &imageCount, nullptr);
     m_swapChainImages.resize(imageCount);
     vkGetSwapchainImagesKHR(m_logicalDevice, m_swapchain, &imageCount, m_swapChainImages.data());
 
     m_swapChainImageFormat = surfaceFormat.format;
     m_swapChainExtent = extent;
+
+    try
+    {
+        createImageViews();
+    }
+    catch(...)
+    {
+        if(m_swapchain != VK_NULL_HANDLE)
+        {
+            vkDestroySwapchainKHR(m_logicalDevice, m_swapchain, nullptr);
+        }
+    }
 }
 
 VkSurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) const
@@ -115,8 +129,50 @@ VkExtent2D Swapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilit
     }
 }
 
+void Swapchain::createImageViews()
+{
+    m_swapChainImageViews.resize(m_swapChainImages.size());
+
+    for(size_t i = 0; i < m_swapChainImages.size(); i++)
+    {
+        VkImageViewCreateInfo createInfo{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .image = m_swapChainImages[i],
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = m_swapChainImageFormat,
+            .components = {
+                VK_COMPONENT_SWIZZLE_IDENTITY,
+                VK_COMPONENT_SWIZZLE_IDENTITY,
+                VK_COMPONENT_SWIZZLE_IDENTITY,
+                VK_COMPONENT_SWIZZLE_IDENTITY
+            },
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+        };
+
+        VK_CHECK(vkCreateImageView(m_logicalDevice, &createInfo, nullptr, &m_swapChainImageViews[i]));
+
+    }
+}
+
+void Swapchain::destroyImageViews()
+{
+    for(auto imageView : m_swapChainImageViews)
+    {
+        vkDestroyImageView(m_logicalDevice, imageView, nullptr);
+    }
+}
+
 Swapchain::~Swapchain()
 {
+
+    destroyImageViews();
+
     if(m_swapchain != VK_NULL_HANDLE)
     {
         vkDestroySwapchainKHR(m_logicalDevice, m_swapchain, nullptr);

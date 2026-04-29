@@ -25,16 +25,9 @@ public:
     VkSurfaceKHR getSurfaceHandle() const { return m_surface.getHandle(); }
     const PhysicalDevice& getPhysicalDevice() const { return m_physicalDevice; }
 
-    // might modiffy
-
-
 private:
     Instance m_instance;
     Surface m_surface;
     PhysicalDevice m_physicalDevice;
     LogicalDevice m_logicalDevice;
-
-
-    // todo: instance, device
-    //VkDevice m_device{};
 };

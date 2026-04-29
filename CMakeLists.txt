@@ -57,10 +57,9 @@ target_sources(engine PRIVATE
     src/engine/vk/surface.cpp
     src/engine/vk/utils.cpp
     src/engine/vk/swapchain.cpp
+    src/engine/vk/pipeline.cpp
 
     src/engine/renderer/renderer.cpp
-
-    src/engine/resources/loader.cpp
 
     vendor/vendor_init.cpp
 )
@@ -86,7 +85,9 @@ target_sources(engine PUBLIC
         src/engine/vk/logical_device.h
         src/engine/vk/surface.h
         src/engine/vk/swapchain.h
+        src/engine/vk/pipeline.h
 
+        src/engine/resources/loader.h
 
         src/engine/renderer/renderer.h
         src/engine/renderer/render_feature.h

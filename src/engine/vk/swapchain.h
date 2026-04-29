@@ -26,6 +26,8 @@ public:
     //     std::vector<VkPresentModeKHR> presentModes;
     // };
 
+    VkExtent2D getExtent() const { return m_swapChainExtent; }
+    VkFormat getFormat() const { return m_swapChainImageFormat; }
 
 private:
     VkSwapchainKHR m_swapchain{ VK_NULL_HANDLE };
@@ -33,9 +35,13 @@ private:
     VkFormat m_swapChainImageFormat;
     VkExtent2D m_swapChainExtent;
     std::vector<VkImage> m_swapChainImages;
+    std::vector<VkImageView> m_swapChainImageViews;
 
     //helpers
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) const;
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) const;
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, uint32_t windowWidth, uint32_t windowHeight) const;
+
+    void createImageViews();
+    void destroyImageViews();
 };
