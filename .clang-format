@@ -69,3 +69,15 @@ BinPackArguments: false
 BinPackParameters: false
 AllowAllArgumentsOnNextLine: false
 AlignAfterOpenBracket: BlockIndent
+
+IncludeCategories:
+  - Regex:           '^<volk\.h>'
+    Priority:        0
+  - Regex:           '^"Mocca/vulkan/vulkan_utils\.h"'
+    Priority:        1
+  - Regex:           '^<.*\.h>'
+    Priority:        2
+  - Regex:           '^<.*'
+    Priority:        3
+  - Regex:           '.*'
+    Priority:        4
