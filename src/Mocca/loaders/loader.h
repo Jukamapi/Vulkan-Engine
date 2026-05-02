@@ -6,7 +6,7 @@
 #include <vector>
 
 
-
+// TODO: Implement AssetHandle
 static std::vector<char> readFile(const std::string& fileName)
 {
     // using ate - "at the end" to know size of file

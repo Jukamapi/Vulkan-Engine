@@ -18,16 +18,19 @@ public:
     CommandPool(CommandPool&&) = delete;
     CommandPool& operator=(CommandPool&&) = delete;
 
-    std::vector<VkCommandBuffer> getBuffers() const
+    const std::vector<VkCommandBuffer>& getBuffers() const
     {
         return m_buffers;
     }
 
+    VkCommandBuffer getNextBuffer();
+
     void allocateBuffers(uint32_t count);
-    void reset() const;
+    void reset();
 
 private:
     VkDevice m_logicalDevice{VK_NULL_HANDLE};
     VkCommandPool m_commandPool{VK_NULL_HANDLE};
+    uint32_t m_usedCount = 0;
     std::vector<VkCommandBuffer> m_buffers;
 };

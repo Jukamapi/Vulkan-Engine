@@ -9,7 +9,8 @@
 
 #include <stdexcept>
 
-
+// TODO: in future implement RHI
+// It probably shouldnt call vulkan directly, isntead RHI, but right now Im only supporting vulkan
 Renderer::Renderer(const Context& context, ExtentProvider extentProvider)
     : m_context(context), m_extentProvider(std::move(extentProvider)),
       m_frameManager(context.getPhysicalDevice().getQueueFamilyIndices(), context.getDeviceHandle())
@@ -24,28 +25,46 @@ Renderer::Renderer(const Context& context, ExtentProvider extentProvider)
         context.getSurfaceHandle(),
         m_currentExtent
     );
-
-    // const SwapchainSupportDetails &details, const QueueFamilyIndices &indices, VkDevice device, VkSurfaceKHR surface,
-    //     Extent frameBufferSize
 }
 
 void Renderer::drawFrame()
 {
-    // handling swapchain events
+    if(!processResize())
+        return;
+
+    uint32_t imageIndex;
+    if(!acquireNextImage(imageIndex))
+        return;
+
+    VkCommandBuffer cmd = recordCommandBuffer(imageIndex);
+
+    submitAndPresent(imageIndex, cmd);
+
+    m_frameManager.advance();
+}
+
+bool Renderer::processResize()
+{
     if(m_isSwapchainDirty)
     {
         Extent newExtent = m_extentProvider();
 
         if(newExtent.width == 0 || newExtent.height == 0)
         {
-            return;
+            return false;
         }
 
         recreateSwapchain(newExtent);
         m_isSwapchainDirty = false;
-        return;
+
+        return false;
     }
 
+    return true;
+}
+
+bool Renderer::acquireNextImage(uint32_t& outImageIndex)
+{
     FrameManager::FrameData& currentFrame = m_frameManager.getCurrentFrame();
 
     VK_CHECK(vkWaitForFences(m_context.getDeviceHandle(), 1, &currentFrame.renderFence, VK_TRUE, UINT64_MAX));
@@ -54,33 +73,35 @@ void Renderer::drawFrame()
 
     currentFrame.commandPool->reset();
 
-
-    uint32_t imageIndex;
-
-    // dont use VK_CHECK as it can return VK_ERROR_OUT_OF_DATE_KHR
     VkResult result = vkAcquireNextImageKHR(
         m_context.getDeviceHandle(),
         m_swapchain->getHandle(),
         UINT64_MAX,
         currentFrame.imageAvailableSemaphore,
         VK_NULL_HANDLE,
-        &imageIndex
+        &outImageIndex
     );
-
     if(result == VK_ERROR_OUT_OF_DATE_KHR)
     {
         m_isSwapchainDirty = true;
-        return;
+        return false;
     }
     else if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
     {
         throw std::runtime_error("failed to acquire swapchain image!");
     }
 
+    return true;
+}
+
+VkCommandBuffer Renderer::recordCommandBuffer(uint32_t imageIndex)
+{
+    FrameManager::FrameData& currentFrame = m_frameManager.getCurrentFrame();
+
     VK_CHECK(vkResetFences(m_context.getDeviceHandle(), 1, &currentFrame.renderFence));
 
     // !!! TODO: Change it so we know which buffer, its hardcoded now !!!
-    VkCommandBuffer commandBuffer = currentFrame.commandPool->getBuffers()[0];
+    VkCommandBuffer commandBuffer = currentFrame.commandPool->getNextBuffer();
 
     VkCommandBufferBeginInfo beginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -89,36 +110,15 @@ void Renderer::drawFrame()
 
     VK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
-    // transition
-    VkImageMemoryBarrier imageBarrier{
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        .srcAccessMask = 0,
-        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-        .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = m_swapchain->getImages()[imageIndex],
-        .subresourceRange{
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1,
-        }
-    };
-
-    vkCmdPipelineBarrier(
+    transitionImage(
         commandBuffer,
+        m_swapchain->getImages()[imageIndex],
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        0,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        0,
-        0,
-        nullptr,
-        0,
-        nullptr,
-        1,
-        &imageBarrier
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
     );
 
     VkClearValue clearColor = {{{0.01f, 0.01f, 0.01f, 1.0f}}};
@@ -146,27 +146,20 @@ void Renderer::drawFrame()
 
     vkCmdBeginRendering(commandBuffer, &renderingInfo);
 
-    // viewport, for example split screen has 2 but 1 render target
-    // viewport(image) -> framebuffer
     VkViewport viewport{
         .x = 0.0f,
         .y = 0.0f,
-        // use swapchains frameBuffer size
         .width = static_cast<float>(m_swapchain->getExtent().width),
         .height = static_cast<float>(m_swapchain->getExtent().height),
         .minDepth = 0.0f,
         .maxDepth = 1.0f,
     };
-    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-    // scissor rectangle just cuts away what doesnt fit
-    VkRect2D scissor{
-        .offset = {0, 0},
-        .extent = m_swapchain->getExtent(),
-    };
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    VkRect2D scissor{.offset = {0, 0}, .extent = m_swapchain->getExtent()};
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    // feature loop
+    // render features
     for(auto& feature : m_features)
     {
         feature->onRender(commandBuffer);
@@ -174,39 +167,25 @@ void Renderer::drawFrame()
 
     vkCmdEndRendering(commandBuffer);
 
-    // transition
-    VkImageMemoryBarrier presentBarrier{
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-        .dstAccessMask = 0,
-        .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = m_swapchain->getImages()[imageIndex],
-        .subresourceRange{
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1,
-        }
-    };
-
-    vkCmdPipelineBarrier(
+    transitionImage(
         commandBuffer,
+        m_swapchain->getImages()[imageIndex],
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        0,
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-        0,
-        0,
-        nullptr,
-        0,
-        nullptr,
-        1,
-        &presentBarrier
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
     );
 
     VK_CHECK(vkEndCommandBuffer(commandBuffer));
+
+    return commandBuffer;
+}
+
+void Renderer::submitAndPresent(uint32_t imageIndex, VkCommandBuffer cmd)
+{
+    FrameManager::FrameData& currentFrame = m_frameManager.getCurrentFrame();
 
     VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
@@ -216,7 +195,7 @@ void Renderer::drawFrame()
         .pWaitSemaphores = &currentFrame.imageAvailableSemaphore,
         .pWaitDstStageMask = &waitStage,
         .commandBufferCount = 1,
-        .pCommandBuffers = &commandBuffer,
+        .pCommandBuffers = &cmd,
         .signalSemaphoreCount = 1,
         .pSignalSemaphores = &currentFrame.renderFinishedSemaphore,
     };
@@ -233,15 +212,12 @@ void Renderer::drawFrame()
         .pImageIndices = &imageIndex,
     };
 
-    // also check event frameBufferResized
     VkResult presentResult = vkQueuePresentKHR(m_context.getLogicalDevice().getPresentQueue(), &presentInfo);
 
     if(presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR)
     {
         m_isSwapchainDirty = true;
     }
-
-    m_frameManager.advance();
 }
 
 
@@ -275,6 +251,38 @@ void Renderer::recreateSwapchain(Extent newExtent)
     *m_swapchain = std::move(newSwapchain);
 
     // TODO: notify features about resize?
+}
+
+void Renderer::transitionImage(
+    VkCommandBuffer cmd,
+    VkImage image,
+    VkImageLayout oldLayout,
+    VkImageLayout newLayout,
+    VkAccessFlags srcAccess,
+    VkAccessFlags dstAccess,
+    VkPipelineStageFlags srcStage,
+    VkPipelineStageFlags dstStage
+)
+{
+    VkImageMemoryBarrier barrier{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .srcAccessMask = srcAccess,
+        .dstAccessMask = dstAccess,
+        .oldLayout = oldLayout,
+        .newLayout = newLayout,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image,
+        .subresourceRange{
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1,
+        }
+    };
+
+    vkCmdPipelineBarrier(cmd, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 }
 
 Renderer::~Renderer()

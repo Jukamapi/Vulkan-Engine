@@ -7,7 +7,7 @@ CommandPool::CommandPool(const QueueFamilyIndices& indices, VkDevice device) : m
 {
     VkCommandPoolCreateInfo poolInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+        .flags = 0,
         .queueFamilyIndex = indices.graphicsFamily.value(),
     };
 
@@ -16,7 +16,8 @@ CommandPool::CommandPool(const QueueFamilyIndices& indices, VkDevice device) : m
 
 void CommandPool::allocateBuffers(uint32_t count)
 {
-    m_buffers.resize(m_buffers.size() + count);
+    uint32_t oldSize = static_cast<uint32_t>(m_buffers.size());
+    m_buffers.resize(oldSize + count);
 
     VkCommandBufferAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -25,12 +26,23 @@ void CommandPool::allocateBuffers(uint32_t count)
         .commandBufferCount = count,
     };
 
-    VK_CHECK(vkAllocateCommandBuffers(m_logicalDevice, &allocInfo, m_buffers.data()));
+    VK_CHECK(vkAllocateCommandBuffers(m_logicalDevice, &allocInfo, &m_buffers[oldSize]));
 }
 
-void CommandPool::reset() const
+VkCommandBuffer CommandPool::getNextBuffer()
+{
+    if(m_usedCount >= m_buffers.size())
+    {
+        allocateBuffers(1);
+    }
+
+    return m_buffers[m_usedCount++];
+}
+
+void CommandPool::reset()
 {
     // we can do this as we set the bit in info
+    m_usedCount = 0;
     vkResetCommandPool(m_logicalDevice, m_commandPool, 0);
 }
 

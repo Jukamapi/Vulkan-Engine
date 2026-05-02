@@ -43,5 +43,22 @@ private:
     std::vector<std::unique_ptr<RenderFeature>> m_features;
     std::unique_ptr<Swapchain> m_swapchain;
 
+    bool processResize();
+    bool acquireNextImage(uint32_t& outImageIndex);
+
+    VkCommandBuffer recordCommandBuffer(uint32_t imageIndex);
+    void submitAndPresent(uint32_t imageIndex, VkCommandBuffer cmd);
+
     void recreateSwapchain(Extent newExtent);
+
+    void transitionImage(
+        VkCommandBuffer cmd,
+        VkImage image,
+        VkImageLayout oldLayout,
+        VkImageLayout newLayout,
+        VkAccessFlags srcAccess,
+        VkAccessFlags dstAccess,
+        VkPipelineStageFlags srcStage,
+        VkPipelineStageFlags dstStage
+    );
 };

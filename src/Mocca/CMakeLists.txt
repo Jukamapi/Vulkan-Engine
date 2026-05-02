@@ -50,7 +50,7 @@ target_sources(mocca PUBLIC
         vulkan/commands/frame_manager.h
         vulkan/commands/deletion_queue.h
 
-        resources/loader.h
+        loaders/loader.h
 
         renderer/renderer.h
         renderer/render_feature.h

@@ -1,10 +1,9 @@
 #pragma once
 
 #include <memory>
+#include "Mocca/loaders/loader.h"
 #include "Mocca/renderer/render_feature.h"
-#include "Mocca/resources/loader.h"
 #include "Mocca/vulkan/pipeline/pipeline.h"
-
 
 
 class TestFeature : public RenderFeature
