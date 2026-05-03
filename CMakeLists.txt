@@ -42,3 +42,5 @@ add_subdirectory(src/Sandbox)
 target_compile_definitions(volk PUBLIC VK_NO_PROTOTYPES)
 target_compile_definitions(mocca PUBLIC VK_NO_PROTOTYPES)
 target_compile_definitions(imgui PUBLIC VK_NO_PROTOTYPES)
+
+target_compile_definitions(mocca PUBLIC SHADER_DIR="${SPIRV_DIR}")

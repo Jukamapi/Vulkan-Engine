@@ -6,6 +6,8 @@
 #include "Mocca/vulkan/pipeline/pipeline.h"
 
 
+// TODO: it uses too much layers: loadShader -> resource (replace by AssetManager), directly touches m_pipeline and
+// vulkan
 class TestFeature : public RenderFeature
 {
 public:

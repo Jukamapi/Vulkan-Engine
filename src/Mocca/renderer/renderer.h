@@ -27,9 +27,25 @@ public:
     void pushFeature(std::unique_ptr<RenderFeature> feature);
     void drawFrame();
 
+    const std::vector<std::unique_ptr<RenderFeature>>& getFeatures() const
+    {
+        return m_features;
+    }
+
     void markSwapchainDirty()
     {
         m_isSwapchainDirty = true;
+    }
+
+    template <typename T> T* getFeature()
+    {
+        for(auto& feature : m_features)
+        {
+            T* casted = dynamic_cast<T*>(feature.get());
+            if(casted)
+                return casted;
+        }
+        return nullptr;
     }
 
 private:

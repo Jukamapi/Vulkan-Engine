@@ -66,5 +66,3 @@ target_link_libraries(mocca PUBLIC
     stb
     vma
 )
-
-target_compile_definitions(mocca PRIVATE SHADER_DIR="${SPIRV_DIR}")

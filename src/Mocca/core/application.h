@@ -26,17 +26,19 @@ public:
 protected:
     virtual void onInit() {}
     virtual void onUpdate(float deltaTime) {}
-    virtual void onImgui() {} // NEW: For your research sliders
+    virtual void onImgui() {}
     virtual void onShutdown() {}
 
+    // call destructors in reverse order, important ordering for now
     Window m_window;
     Context m_context;
     Renderer m_renderer;
 
 private:
-    // call destructors in reverse order, important ordering for now
     void processEvents();
     void processInputs();
+    void tickLogic(float deltaTime);
+    void tickRender(float deltaTime);
 
 
     std::vector<Event> m_eventQueue;

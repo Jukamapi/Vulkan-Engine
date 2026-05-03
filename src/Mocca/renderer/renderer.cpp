@@ -9,7 +9,7 @@
 
 #include <stdexcept>
 
-// TODO: in future implement RHI
+// TODO: in future implement RHI, wrap VkCommanBuffer etc in RenderContext class
 // It probably shouldnt call vulkan directly, isntead RHI, but right now Im only supporting vulkan
 Renderer::Renderer(const Context& context, ExtentProvider extentProvider)
     : m_context(context), m_extentProvider(std::move(extentProvider)),
@@ -100,7 +100,6 @@ VkCommandBuffer Renderer::recordCommandBuffer(uint32_t imageIndex)
 
     VK_CHECK(vkResetFences(m_context.getDeviceHandle(), 1, &currentFrame.renderFence));
 
-    // !!! TODO: Change it so we know which buffer, its hardcoded now !!!
     VkCommandBuffer commandBuffer = currentFrame.commandPool->getNextBuffer();
 
     VkCommandBufferBeginInfo beginInfo{
@@ -162,7 +161,8 @@ VkCommandBuffer Renderer::recordCommandBuffer(uint32_t imageIndex)
     // render features
     for(auto& feature : m_features)
     {
-        feature->onRender(commandBuffer);
+        if(feature->isEnabled())
+            feature->onRender(commandBuffer);
     }
 
     vkCmdEndRendering(commandBuffer);
@@ -251,6 +251,10 @@ void Renderer::recreateSwapchain(Extent newExtent)
     *m_swapchain = std::move(newSwapchain);
 
     // TODO: notify features about resize?
+    for(auto& feature : m_features)
+    {
+        feature->onResize(m_currentExtent.width, m_currentExtent.height);
+    }
 }
 
 void Renderer::transitionImage(
